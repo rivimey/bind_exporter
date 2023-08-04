@@ -1,0 +1,39 @@
+---
+
+- name: Set the Github API endpoint
+  set_fact:
+    _bind_exporter_github_api_url: |-
+      {% if bind_exporter_release_tag == 'latest' %}
+      https://api.github.com/repos/prometheus-community/bind_exporter/releases/latest
+      {% else %}
+      https://api.github.com/repos/prometheus-community/bind_exporter/releases/tags/{{ bind_exporter_release_tag }}
+      {% endif %}
+
+- name: Set the Github API token
+  set_fact:
+    _bind_exporter_github_api_token: "{{ lookup('env', 'GITHUB_API_TOKEN') }}"
+
+- name: Fetch the bind-exporter release information from Github
+  uri:
+    url: "{{ _bind_exporter_github_api_url }}"
+    method: GET
+    headers:
+      Authorization: "{% if _bind_exporter_github_api_token %}token {{ _bind_exporter_github_api_token }}{% endif %}"
+  check_mode: no
+  register: _bind_exporter_github_release
+  until: |
+    'status' in _bind_exporter_github_release
+      and _bind_exporter_github_release['status'] == 200
+  retries: 5
+  delay: 15
+
+- name: Get the tag of the latest bind-exporter Github release
+  set_fact:
+    bind_exporter_release_tag: "{{ _bind_exporter_github_release['json'] | json_query('tag_name') }}"
+  when: bind_exporter_release_tag == "latest"
+
+- name: Set the Github download URL for the bind-exporter release
+  set_fact:
+    bind_exporter_release_url: "{{ _bind_exporter_github_release['json'] | json_query(_bind_exporter_release_asset_url_query) }}"
+  vars:
+    _bind_exporter_release_asset_url_query: "assets[?name=='{{ hostvars[inventory_hostname] | bind_exporter_release_build(bind_exporter_release_tag) }}.tar.gz'] | [0].browser_download_url"  # noqa 204

@@ -1,0 +1,17 @@
+---
+
+- name: restart bind_exporter
+  service:
+    name: bind_exporter
+    state: restarted
+
+- name: reload bind_exporter
+  service:
+    name: bind_exporter
+    state: reloaded
+
+- name: reload systemd and restart bind_exporter
+  command: systemctl daemon-reload
+  notify: restart bind_exporter
+  tags:
+    - skip_ansible_lint

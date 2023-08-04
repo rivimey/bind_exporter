@@ -1,0 +1,10 @@
+---
+
+- include: install-bind-exporter.yml
+- include: configure-bind-exporter.yml
+
+- name: Start and enable the bind-exporter service
+  service:
+    name: bind_exporter
+    state: started
+    enabled: true

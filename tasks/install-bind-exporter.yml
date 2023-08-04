@@ -1,0 +1,48 @@
+---
+
+- name: Create the bind-exporter group
+  group:
+    name: "{{ bind_exporter_group }}"
+    state: present
+
+- name: Create the bind-exporter user
+  user:
+    name: "{{ bind_exporter_user }}"
+    state: present
+
+- include: github-bind-exporter-release.yml
+  when: not bind_exporter_release_url
+
+- name: Make sure the bind-exporter install directory exists
+  file:
+    dest: "{{ bind_exporter_install_path }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+    recurse: true
+
+- name: Get the name of the bind-exporter release archive
+  set_fact:
+    _bind_exporter_archive: "{{ bind_exporter_release_url | basename }}"
+
+- name: Set the bind-exporter installation path
+  set_fact:
+    _bind_exporter_install_path: "{{ bind_exporter_install_path }}/{{ _bind_exporter_archive | regex_replace('\\.zip|\\.gz|\\.tar|\\.tgz|\\.bzip','') }}"
+
+- name: Download the bind-exporter
+  unarchive:
+    src: "{{ bind_exporter_release_url }}"
+    dest: "{{ bind_exporter_install_path }}"
+    creates: "{{ _bind_exporter_install_path }}/bind_exporter"
+    remote_src: yes
+  notify: restart bind_exporter
+
+- name: Symlink the bind-exporter binaries
+  file:
+    src: "{{ _bind_exporter_install_path }}/{{ item }}"
+    dest: "{{ bind_exporter_bin_path }}/{{ item }}"
+    state: link
+  notify: restart bind_exporter
+  with_items:
+    - bind_exporter

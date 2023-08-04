@@ -1,0 +1,26 @@
+---
+
+# The bind-exporter release to be installed
+bind_exporter_release_tag: "latest"
+
+# The URL from which download the bind-exporter release
+bind_exporter_release_url: ""
+
+# bind-exporter user and group
+bind_exporter_user: "bind_exporter"
+bind_exporter_group: "bind_exporter"
+
+# Directory containing the downloaded bind-exporter release
+bind_exporter_install_path: "/opt"
+
+# Directory to which symlink the installed bind-exporter binaries
+bind_exporter_bin_path: "/usr/local/bin"
+
+# bind-exporter listen address
+bind_exporter_listen_address: "127.0.0.1:9100"
+
+# bind-exporter log level
+# bind_exporter_log_level: "info"
+
+# Additional command-line arguments to be added to the bind-exporter unit
+bind_exporter_additional_cli_args: ""
